@@ -3,6 +3,17 @@ package log
 type LevelHooks map[Level][]Hook
 type Level = int8
 
+var (
+	DefaultLevel = []Level{
+		DebugLevel,
+		InfoLevel,
+		WarnLevel,
+		ErrorLevel,
+		PanicLevel,
+		FatalLevel,
+	}
+)
+
 const (
 	DebugLevel Level = iota - 1
 	// InfoLevel is the default logging priority.

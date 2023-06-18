@@ -22,14 +22,7 @@ func main() {
 	logger, _ := zap.NewProduction()
 	helper := zapimpl.NewHelper(
 		logger,
-		zapimpl.AddHook(hooks.NewOtelLogHook([]log.Level{
-			log.InfoLevel,
-			log.DebugLevel,
-			log.WarnLevel,
-			log.ErrorLevel,
-			log.PanicLevel,
-		}),
-		),
+		zapimpl.AddHook(hooks.NewOtelLogHook(log.DefaultLevel)),
 	)
 	// http 服务
 	srv := transport.NewHttpServer(
