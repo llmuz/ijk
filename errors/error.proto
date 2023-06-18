@@ -8,7 +8,7 @@ option go_package = "github.com/llmuz/ijk/errors;errors";
 // 定义当前请求的状态
 message Status {
   // http 状态码, 比如 200, 204, 301, 302, 400, 403, 500, 504 等等
-  int32 http_code = 1; // @inject_tag: json:"http_code"
+  int32 http_code = 1; // @inject_tag: json:"-"
   // 业务错误代码, 由业务定义的业务错误代码 比如说业务定义 10000 表示请求成功
   int64 err_no = 2; // @inject_tag: json:"err_no"
   // 业务错误消息提示,  比如业务定义 success 表示请求成功

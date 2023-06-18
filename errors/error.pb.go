@@ -27,7 +27,7 @@ type Status struct {
 	unknownFields protoimpl.UnknownFields
 
 	// http 状态码, 比如 200, 204, 301, 302, 400, 403, 500, 504 等等
-	HttpCode int32 `protobuf:"varint,1,opt,name=http_code,json=httpCode,proto3" json:"http_code"` // @inject_tag: json:"http_code"
+	HttpCode int32 `protobuf:"varint,1,opt,name=http_code,json=httpCode,proto3" json:"-"` // @inject_tag: json:"-"
 	// 业务错误代码, 由业务定义的业务错误代码 比如说业务定义 10000 表示请求成功
 	ErrNo int64 `protobuf:"varint,2,opt,name=err_no,json=errNo,proto3" json:"err_no"` // @inject_tag: json:"err_no"
 	// 业务错误消息提示,  比如业务定义 success 表示请求成功
