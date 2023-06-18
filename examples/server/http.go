@@ -13,6 +13,7 @@ import (
 	"github.com/llmuz/ijk/log/hooks"
 	"github.com/llmuz/ijk/log/zapimpl"
 	"github.com/llmuz/ijk/middleware/logging"
+	"github.com/llmuz/ijk/middleware/ratelimit"
 	"github.com/llmuz/ijk/middleware/recovery"
 	"github.com/llmuz/ijk/middleware/tracing"
 	"github.com/llmuz/ijk/transport"
@@ -20,18 +21,34 @@ import (
 
 func main() {
 	logger, _ := zap.NewProduction()
-	helper := zapimpl.NewHelper(
-		logger,
-		zapimpl.AddHook(hooks.NewOtelLogHook(log.DefaultLevel)),
-	)
+
 	// http 服务
 	srv := transport.NewHttpServer(
 		transport.RunMode(gin.DebugMode),
 		transport.Endpoint("127.0.0.1:8081"),
 		transport.Middleware(
-			gin.CustomRecovery(recovery.ServerPanic(helper)),
-			tracing.WithTraceProvider(tracesdk.NewTracerProvider(tracesdk.WithSampler(tracesdk.NeverSample()))),
-			logging.ServerLog(helper),
+			gin.CustomRecovery(
+				recovery.ServerPanic(
+					zapimpl.NewHelper(
+						logger.WithOptions(zap.AddCallerSkip(2)),
+						zapimpl.AddHook(hooks.NewOtelLogHook(log.DefaultLevel)),
+					),
+				),
+			),
+			ratelimit.Server(),
+			tracing.WithTraceProvider(
+				tracesdk.NewTracerProvider(
+					tracesdk.WithSampler(tracesdk.NeverSample()),
+				),
+			),
+			logging.ServerLog(
+				zapimpl.NewHelper(
+					logger.WithOptions(zap.AddCallerSkip(2)),
+					zapimpl.AddHook(
+						hooks.NewOtelLogHook(log.DefaultLevel),
+					),
+				),
+			),
 		),
 	)
 
