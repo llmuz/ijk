@@ -6,11 +6,17 @@ import (
 
 	"github.com/gin-contrib/pprof"
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 
+	"github.com/llmuz/ijk/log"
+	"github.com/llmuz/ijk/log/hooks"
+	"github.com/llmuz/ijk/log/zapimpl"
+	"github.com/llmuz/ijk/middleware/logging"
 	"github.com/llmuz/ijk/transport"
 )
 
 func main() {
+	logger, _ := zap.NewProduction()
 	// http 服务
 	srv := transport.NewHttpServer(
 		transport.RunMode(gin.DebugMode),
@@ -18,6 +24,13 @@ func main() {
 		transport.Middleware(
 			gin.Recovery(),
 			gin.Logger(),
+			logging.ServerLog(zapimpl.NewHelper(logger, zapimpl.AddHook(hooks.NewOtelLogHook([]log.Level{
+				log.InfoLevel,
+				log.DebugLevel,
+				log.WarnLevel,
+				log.ErrorLevel,
+				log.PanicLevel,
+			})))),
 		),
 	)
 
