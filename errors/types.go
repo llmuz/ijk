@@ -2,6 +2,7 @@ package errors
 
 var (
 	SuccessErrNo      int64 = 10_000 // 请求成功
+	InternalPanicNo   int64 = 10_002 // 服务内部异常,致命错误
 	BadRequestErrNo   int64 = 400    // 参数错误
 	UnauthorizedErrNo int64 = 401    //  没有授权
 	UnknownErrNo      int64 = 20_000 // 未知错误
