@@ -8,11 +8,14 @@ import (
 	"github.com/llmuz/ijk/errors"
 )
 
-func NewServiceHandler() ServiceHandler {
-	return &ginSrvHandlerImpl{}
+func NewServiceHandler(validate func(ctx *gin.Context, req interface{}) (err error)) ServiceHandler {
+	return &ginSrvHandlerImpl{
+		validate: validate,
+	}
 }
 
 type ginSrvHandlerImpl struct {
+	validate func(ctx *gin.Context, req interface{}) (err error)
 }
 
 func (c *ginSrvHandlerImpl) Error(ctx *gin.Context, err error) {
@@ -33,7 +36,7 @@ func (c *ginSrvHandlerImpl) ParamsError(ctx *gin.Context, err error) {
 }
 
 func (c *ginSrvHandlerImpl) Validate(ctx *gin.Context, req interface{}) (err error) {
-	return err
+	return c.validate(ctx, req)
 }
 
 func (c *ginSrvHandlerImpl) Success(ctx *gin.Context, data interface{}) {
