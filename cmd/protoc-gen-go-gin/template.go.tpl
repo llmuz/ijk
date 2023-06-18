@@ -52,7 +52,7 @@ func (s *{{$.Name}}) {{ .HandlerName }} (ctx *gin.Context) {
 
     
 	if err := s.srvHandler.Validate(ctx, &in); err != nil {
-		s.srvHandler.ParamsError(ctx, err)
+		s.srvHandler.Error(ctx, err)
 		return
 	}
 

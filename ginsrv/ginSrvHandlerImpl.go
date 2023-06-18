@@ -1,8 +1,6 @@
 package ginsrv
 
 import (
-	purger "errors"
-
 	"github.com/gin-gonic/gin"
 
 	"github.com/llmuz/ijk/errors"
@@ -19,8 +17,7 @@ type ginSrvHandlerImpl struct {
 }
 
 func (c *ginSrvHandlerImpl) Error(ctx *gin.Context, err error) {
-	var e errors.Error
-	if purger.Is(err, &e) {
+	if e, ok := err.(*errors.Error); ok {
 		c.response(ctx, e.GetHttpCode(), e.GetErrNo(), e.GetErrMsg(), e.GetData())
 		return
 	}
