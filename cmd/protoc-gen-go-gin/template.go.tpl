@@ -9,7 +9,7 @@ type {{ $.InterfaceName }} interface {
 }
 
 
-func New{{$.Name}}Server(srv IJKGinServer, srvHandler ginsrv.ServiceHandler) (c *{{$.Name}}) {
+func New{{$.Name}}Server(srv {{ $.InterfaceName }}, srvHandler ginsrv.ServiceHandler) (c *{{$.Name}}) {
 	c = &{{$.Name}}{
 		server:     srv,
 		srvHandler: srvHandler,
