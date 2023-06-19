@@ -36,14 +36,14 @@ func Server(opts ...Option) gin.HandlerFunc {
 		opt(o)
 	}
 	return func(ctx *gin.Context) {
-		done, e := o.limiter.Allow()
-		if e != nil {
+		done, err := o.limiter.Allow()
+		if err != nil {
 			ctx.AbortWithStatusJSON(int(ErrLimitExceed.GetHttpCode()), ErrLimitExceed)
 			return
 		}
 		ctx.Next()
 		// allowed
-		done(ratelimit.DoneInfo{Err: nil})
+		done(ratelimit.DoneInfo{Err: err})
 		return
 	}
 }
