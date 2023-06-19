@@ -19,6 +19,7 @@ var (
 	centerDot = []byte("·")
 	dot       = []byte(".")
 	slash     = []byte("/")
+	panicErr  = errors.New(500, errors.InternalPanicNo, "service internal error", "service internal error")
 )
 
 func ServerPanic(log log.Helper) gin.RecoveryFunc {
@@ -33,8 +34,8 @@ func ServerPanic(log log.Helper) gin.RecoveryFunc {
 			}
 		}
 		headersToStr := strings.Join(headers, "\r\n")
-		log.WithContext(ctx.Request.Context()).Infof(headersToStr+"error %s, stack:%s", err, string(stack))
-		ctx.AbortWithStatusJSON(500, errors.Errorf(500, errors.InternalPanicNo, "service internal error", nil, err))
+		log.WithContext(ctx.Request.Context()).Errorf(headersToStr+"error %s, stack:%s", err, string(stack))
+		ctx.AbortWithStatusJSON(500, panicErr)
 	}
 
 }

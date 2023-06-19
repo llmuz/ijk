@@ -1,0 +1,42 @@
+# Generated with protoc-gen-openapi
+# https://github.com/google/gnostic/tree/master/cmd/protoc-gen-openapi
+
+openapi: 3.0.3
+info:
+    title: Greeter API
+    description: 样例服务定义
+    version: 0.0.1
+paths:
+    /greeter/v1/{name}:
+        get:
+            tags:
+                - Greeter
+            operationId: Greeter_Greeter
+            parameters:
+                - name: name
+                  in: path
+                  description: 用户名称
+                  required: true
+                  schema:
+                    type: string
+                - name: query
+                  in: query
+                  description: 查询参数
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/greeter.v1.GreeterResponse'
+components:
+    schemas:
+        greeter.v1.GreeterResponse:
+            type: object
+            properties:
+                data:
+                    type: string
+tags:
+    - name: Greeter

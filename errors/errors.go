@@ -14,6 +14,21 @@ func (c *Error) GetData() interface{} {
 	return c.Data
 }
 
+func (c *Error) clone() *Error {
+	e := Error{}
+	e.ErrNo = c.GetErrNo()
+	e.cause = c.cause
+	e.ErrMsg = c.GetErrMsg()
+	e.HttpCode = c.GetHttpCode()
+	return &e
+}
+
+func (c *Error) PatchData(data interface{}) *Error {
+	e := c.clone()
+	e.Data = data
+	return e
+}
+
 func (c *Error) Error() string {
 	return fmt.Sprintf("error: status_code = %d err_no = %d err_msg = %s cause = %v",
 		c.Status.HttpCode,
