@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+package greeter.v1;
+
+import "google/api/annotations.proto";
+
+option go_package = "github.com/llmuz/ijk/examples/api/greeter/v1;v1";
+
+// 样例服务定义
+service Greeter {
+  //
+  rpc Greeter(GreeterRequest)returns(GreeterResponse) {
+    option (google.api.http) = {
+      get: "/greeter/v1/{name}"
+    };
+  }
+}
+
+message GreeterRequest {
+  // 用户名称
+  string name = 1; // @gotags: validate:"min=2,max=64" uri:"name"
+  // 查询参数
+  string query = 2; // @gotags: validate:"min=2,max=64" form:"query"
+}
+
+message GreeterResponse {
+  string data = 1;
+}
