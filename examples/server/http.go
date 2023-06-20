@@ -19,7 +19,6 @@ import (
 	v1 "github.com/llmuz/ijk/examples/api/greeter/v1"
 	"github.com/llmuz/ijk/ginsrv"
 	"github.com/llmuz/ijk/log"
-	"github.com/llmuz/ijk/log/config"
 	"github.com/llmuz/ijk/log/hooks"
 	"github.com/llmuz/ijk/log/zapimpl"
 	"github.com/llmuz/ijk/middleware/logging"
@@ -90,18 +89,21 @@ func (c *greeterImpl) Greeter(ctx context.Context, req *v1.GreeterRequest) (resp
 }
 
 func main() {
-	consoleLog := false
-	maxBackUp := uint32(1)
-	logger, err := zapimpl.NewZapLogger(
-		&config.LogConfig{
-			Level:                  "debug",
-			FileName:               "biz.log",
-			MaxBackup:              &maxBackUp,
-			DebugModeOutputConsole: &consoleLog})
+
+	logger, err := zapimpl.Logger(
+		zapimpl.Compress(true),
+		zapimpl.MaxSize(1024),
+		zapimpl.MaxBackup(10),
+		zapimpl.FileName("biz.log"),
+		zapimpl.Level("debug"),
+		zapimpl.MaxAge(3),
+		zapimpl.JsonFormat(true),
+		zapimpl.DebugModeOutputConsole(true),
+		zapimpl.EncoderConfig(zapimpl.DefaultEncoderConfig),
+	)
 	if err != nil {
 		panic(err)
 	}
-	//logger, _ := zap.NewProduction()
 
 	// http 服务
 	srv := transport.NewHttpServer(

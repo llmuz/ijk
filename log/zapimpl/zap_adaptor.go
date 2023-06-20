@@ -24,6 +24,171 @@ const (
 	levelFatal = "fatal"
 )
 
+type ConfigOption func(*zapConf)
+
+func FileName(fileName string) ConfigOption {
+	return func(c *zapConf) {
+		c.logConfig.FileName = fileName
+	}
+}
+
+func Level(level string) ConfigOption {
+	return func(c *zapConf) {
+		c.logConfig.Level = level
+	}
+}
+
+func JsonFormat(jsonFormat bool) ConfigOption {
+	return func(c *zapConf) {
+		c.logConfig.JsonFormat = &jsonFormat
+	}
+}
+
+func MaxSize(maxSize uint32) ConfigOption {
+	return func(c *zapConf) {
+		c.logConfig.MaxSize = &maxSize
+	}
+}
+
+func MaxBackup(maxBackup uint32) ConfigOption {
+	return func(c *zapConf) {
+		c.logConfig.MaxBackup = &maxBackup
+	}
+}
+
+func MaxAge(maxAge uint32) ConfigOption {
+	return func(c *zapConf) {
+		c.logConfig.MaxAge = &maxAge
+	}
+}
+
+func Compress(compress bool) ConfigOption {
+	return func(c *zapConf) {
+		c.logConfig.Compress = &compress
+	}
+}
+
+func DebugModeOutputConsole(debugOutputConsol bool) ConfigOption {
+	return func(c *zapConf) {
+		c.logConfig.DebugModeOutputConsole = &debugOutputConsol
+	}
+}
+
+func EncoderConfig(encoderConfig zapcore.EncoderConfig) ConfigOption {
+	return func(c *zapConf) {
+		c.encoderConfig = encoderConfig
+	}
+}
+
+func Logger(opts ...ConfigOption) (logger *zap.Logger, err error) {
+	c := &zapConf{
+		encoderConfig: DefaultEncoderConfig,
+		logConfig: config.LogConfig{
+			FileName: "biz.log",
+		},
+	}
+	for _, opt := range opts {
+		opt(c)
+	}
+	return newZapLogger(&(c.logConfig), c.encoderConfig)
+}
+
+type zapConf struct {
+	logConfig     config.LogConfig
+	encoderConfig zapcore.EncoderConfig
+}
+
+var DefaultEncoderConfig = zapcore.EncoderConfig{
+	MessageKey:     "msg",
+	LevelKey:       "level",
+	TimeKey:        "ts",
+	CallerKey:      "file",
+	SkipLineEnding: false,
+	EncodeLevel:    zapcore.CapitalLevelEncoder,
+	EncodeCaller:   zapcore.ShortCallerEncoder,
+	StacktraceKey:  "stack",
+	EncodeTime: func(t time.Time, enc zapcore.PrimitiveArrayEncoder) {
+		enc.AppendString(t.Format("2006-01-02 15:04:05.9999999"))
+	}, // time format
+	EncodeDuration: func(d time.Duration, enc zapcore.PrimitiveArrayEncoder) {
+		enc.AppendInt64(int64(d) / 10e6)
+	}, // duration
+}
+
+func newZapLogger(cfg *config.LogConfig, encoderConfig zapcore.EncoderConfig) (logger *zap.Logger, err error) {
+	var (
+		defaultBackUp   = 200       // 保留日志的最大值
+		defaultSize     = 1024      // 默认日志最大分割容量
+		defaultAge      = 7         // 日志保留的最大天数
+		defaultFileName = "biz.log" // 默认日志文件名
+	)
+
+	var handleErr = func(msg string) (logger *zap.Logger, err error) {
+		return nil, errors.New(msg)
+	}
+
+	if cfg == nil {
+		return handleErr("NewZapLogger couldn't be nil")
+	}
+
+	// info is default log level
+	var logLevel zapcore.Level
+	if logLevel, err = parseLogLevel(cfg.GetLevel()); err != nil {
+		return handleErr(err.Error())
+	}
+
+	// 将所有的日志文件输出到同一个文件
+	bizLevel := zap.LevelEnablerFunc(func(lvl zapcore.Level) bool {
+		return lvl >= logLevel
+	})
+
+	// 保留文件的最大数量
+	var maxBackupSize = defaultBackUp
+	if cfg.MaxBackup != nil {
+
+		maxBackupSize = int(cfg.GetMaxBackup())
+	}
+
+	// 保留日志的最大天数
+	var maxAge = defaultAge
+	if cfg.MaxAge != nil {
+		maxAge = int(cfg.GetMaxAge())
+	}
+
+	// 日志的最大值
+	var maxSize = defaultSize
+	if cfg.MaxSize != nil {
+		maxSize = int(cfg.GetMaxSize())
+	}
+
+	if cfg.FileName == "" {
+		cfg.FileName = defaultFileName
+	}
+	// writer
+	bizWriter := getWriter(cfg.GetFileName(),
+		maxBackupSize, maxAge, maxSize, cfg.GetCompress())
+
+	// 判断输入日志的格式
+	var zc zapcore.Core
+	if cfg.GetJsonFormat() {
+		zc = zapcore.NewCore(zapcore.NewJSONEncoder(encoderConfig), zapcore.AddSync(bizWriter), bizLevel)
+	} else {
+		zc = zapcore.NewCore(zapcore.NewConsoleEncoder(encoderConfig), zapcore.AddSync(bizWriter), bizLevel)
+	}
+	// 配置多个输出文件
+	core := zapcore.NewTee(
+		zc,
+	)
+
+	// debug 日志级别是否输出到控制台
+	if cfg.GetDebugModeOutputConsole() && (strings.ToLower(cfg.GetLevel()) == levelDebug) {
+		//同时将日志输出到控制台，NewJSONEncoder 是结构化输出
+		core = zapcore.NewTee(core, zapcore.NewCore(zapcore.NewConsoleEncoder(encoderConfig), zapcore.AddSync(os.Stdout), logLevel))
+	}
+
+	return zap.New(core), nil
+}
+
 // NewZapLogger 日志配置文件
 // 如果需要配置 options, 请使用 logger.WithOptions() 方法进行配置
 // zap.AddCaller()
