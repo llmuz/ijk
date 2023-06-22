@@ -34,6 +34,9 @@ func (s *{{$.ImplHandlerName}}) {{ .Name }} (ctx *gin.Context) {
 	var in {{.Request}}
 {{if .HasPathParams }}
     // bind uri param, etc: /api/:name bind :name
+    // type FooBar struct {
+    //      Name string `uri:"name"` // binding uri name
+    // }
 	if err := ctx.ShouldBindUri(&in); err != nil {
 		s.srvHandler.ParamsError(ctx, err)
 		return
@@ -41,12 +44,18 @@ func (s *{{$.ImplHandlerName}}) {{ .Name }} (ctx *gin.Context) {
 {{end}}
 {{if eq .Method "GET" "DELETE" }}
     // bind query param, etc: /api/name?query=data, bind query
+    // type FooBar struct {
+    //      Name string `form:"name"` // binding form name
+    // }
 	if err := ctx.ShouldBindQuery(&in); err != nil {
 		s.srvHandler.ParamsError(ctx, err)
 		return
 	}
 {{else if eq .Method "POST" "PUT" }}
     // bind body data, etc: PUT, POST
+    // type FooBar struct {
+    //      Name string `json:"name"  // binding json name
+    // }
 	if err := ctx.ShouldBindJSON(&in); err != nil {
 		s.srvHandler.ParamsError(ctx, err)
 		return
@@ -67,19 +76,25 @@ func (s *{{$.ImplHandlerName}}) {{ .Name }} (ctx *gin.Context) {
 		return
 	}
 
+    // pull *gin.Context
 	ctx.Request = ctx.Request.WithContext(context.WithValue(ctx.Request.Context(), "request_context", ctx))
 
+    // pull http request header
 	md := metadata.New(nil)
 	for k, v := range ctx.Request.Header {
 		md.Set(k, v...)
 	}
 	newCtx := metadata.NewIncomingContext(ctx, md)
+
+	// call HandlerImpl
 	out, err := s.server.({{ $.InterfaceName }}).{{.Name}}(newCtx, &in)
+	// handler error
 	if err != nil {
 		s.srvHandler.Error(ctx, err)
 		return
 	}
 
+    // handler success
 	s.srvHandler.Success(ctx, out)
 }
 {{end}}
