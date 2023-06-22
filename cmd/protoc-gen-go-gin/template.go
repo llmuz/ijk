@@ -12,9 +12,11 @@ import (
 var tpl string
 
 type service struct {
-	Name     string // Greeter
-	FullName string // helloworld.Greeter
-	FilePath string // api/helloworld/helloworld.proto
+	Name            string // Greeter
+	ImplHandlerName string // Greeter
+	Comment         string
+	FullName        string // helloworld.Greeter
+	FilePath        string // api/helloworld/helloworld.proto
 
 	Methods   []*method
 	MethodSet map[string]*method
@@ -41,7 +43,7 @@ func (s *service) execute() string {
 
 // InterfaceName service interface name
 func (s *service) InterfaceName() string {
-	return s.Name + "GinServer"
+	return s.Name
 }
 
 type method struct {
@@ -49,6 +51,7 @@ type method struct {
 	Num     int    // 一个 rpc 方法可以对应多个 http 请求
 	Request string // SayHelloReq
 	Reply   string // SayHelloResp
+	Comment string
 	// http_rule
 	Path         string // 路由
 	Method       string // HTTP Method
