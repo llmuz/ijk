@@ -18,55 +18,78 @@ import (
 // generate by protoc-gen-go-gin
 // powered by xx
 
-type GreeterGinServer interface {
+// 样例服务定义
+type GreeterGin interface {
 
 	// /greeter/v1/:name GET
+	//
 	Greeter(ctx context.Context, req *GreeterRequest) (resp *GreeterResponse, err error)
 }
 
-func NewGreeterServer(srv GreeterGinServer, srvHandler ginsrv.ServiceHandler) (c *Greeter) {
-	c = &Greeter{
+// GreeterGin service
+type GreeterHandler struct {
+	server     GreeterGin
+	srvHandler ginsrv.ServiceHandler
+}
+
+// NewGreeterHandler build GreeterHandler
+func NewGreeterHandler(srv GreeterGin, srvHandler ginsrv.ServiceHandler) (c *GreeterHandler) {
+	c = &GreeterHandler{
 		server:     srv,
 		srvHandler: srvHandler,
 	}
 	return c
 }
 
-type Greeter struct {
-	server     GreeterGinServer
-	srvHandler ginsrv.ServiceHandler
-}
-
-func (s *Greeter) Greeter_0(ctx *gin.Context) {
+//
+func (s *GreeterHandler) GreeterHandler(ctx *gin.Context) {
 	var in GreeterRequest
 
+	// bind uri param, etc: /api/:name bind :name
+	// type FooBar struct {
+	//      Name string `uri:"name"` // binding uri name
+	// }
 	if err := ctx.ShouldBindUri(&in); err != nil {
 		s.srvHandler.ParamsError(ctx, err)
 		return
 	}
 
+	// bind query param, etc: /api/name?query=data, bind query
+	// type FooBar struct {
+	//      Name string `form:"name"` // binding form name
+	// }
 	if err := ctx.ShouldBindQuery(&in); err != nil {
 		s.srvHandler.ParamsError(ctx, err)
 		return
 	}
 
+	// validate param ok or not?
+	// type FooBar struct {
+	//      Name string `json:"name" validate:"min=10,max=32"` // 表示 name的长度只能在 [10, 32]
+	// }
 	if err := s.srvHandler.Validate(ctx, &in); err != nil {
 		s.srvHandler.Error(ctx, err)
 		return
 	}
 
+	// pull *gin.Context
 	ctx.Request = ctx.Request.WithContext(context.WithValue(ctx.Request.Context(), "request_context", ctx))
 
+	// pull http request header
 	md := metadata.New(nil)
 	for k, v := range ctx.Request.Header {
 		md.Set(k, v...)
 	}
 	newCtx := metadata.NewIncomingContext(ctx, md)
-	out, err := s.server.(GreeterGinServer).Greeter(newCtx, &in)
+
+	// call HandlerImpl
+	out, err := s.server.(GreeterGin).Greeter(newCtx, &in)
+	// handler error
 	if err != nil {
 		s.srvHandler.Error(ctx, err)
 		return
 	}
 
+	// handler success
 	s.srvHandler.Success(ctx, out)
 }

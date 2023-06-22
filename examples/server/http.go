@@ -79,7 +79,7 @@ type greeterImpl struct {
 	log log.Helper
 }
 
-func NewGreeterServer(log log.Helper) v1.GreeterGinServer {
+func NewGreeterServer(log log.Helper) v1.GreeterGin {
 	return &greeterImpl{log: log}
 }
 
@@ -148,8 +148,8 @@ func main() {
 			zapimpl.AddHook(hooks.NewOtelLogHook(log.DefaultLevel)),
 		),
 	)
-	greeterSrvImpl := v1.NewGreeterServer(greeterServer, ginsrv.NewServiceHandler(v.Validate))
-	srv.Engine().GET("/greeter/v1/:name", greeterSrvImpl.Greeter_0)
+	greeterSrvImpl := v1.NewGreeterHandler(greeterServer, ginsrv.NewServiceHandler(v.Validate))
+	srv.Engine().GET("/greeter/v1/:name", greeterSrvImpl.GreeterHandler)
 
 	srv.Engine().GET("/hello", func(ctx *gin.Context) {
 		rand.Seed(time.Now().UnixNano())
