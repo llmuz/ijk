@@ -158,7 +158,7 @@ func buildMethodDesc(m *protogen.Method, httpMethod, path string) *method {
 	defer func() { methodSets[m.GoName]++ }()
 
 	md := &method{
-		Name:    m.GoName,
+		Name:    m.GoName, // 定义 rpc 方法的名称, 比如是 SayHello
 		Num:     methodSets[m.GoName],
 		Request: m.Input.GoIdent.GoName,
 		Reply:   m.Output.GoIdent.GoName,
