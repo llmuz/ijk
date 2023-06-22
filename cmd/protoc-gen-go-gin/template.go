@@ -43,7 +43,7 @@ func (s *service) execute() string {
 
 // InterfaceName service interface name
 func (s *service) InterfaceName() string {
-	return s.Name
+	return s.Name + "Gin"
 }
 
 type method struct {
@@ -61,7 +61,8 @@ type method struct {
 
 // HandlerName for gin handler name
 func (m *method) HandlerName() string {
-	return fmt.Sprintf("%s_%d", m.Name, m.Num)
+	//return fmt.Sprintf("%s_%d", m.Name, m.Num)
+	return fmt.Sprintf("%s%s", m.Name, "Handler")
 }
 
 // HasPathParams 是否包含路由参数

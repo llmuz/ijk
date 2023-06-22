@@ -30,7 +30,7 @@ func New{{$.ImplHandlerName}}(srv {{ $.InterfaceName }}, srvHandler ginsrv.Servi
 
 {{range .Methods}}
  {{.Comment}}
-func (s *{{$.ImplHandlerName}}) {{ .Name }} (ctx *gin.Context) {
+func (s *{{$.ImplHandlerName}}) {{ .HandlerName }} (ctx *gin.Context) {
 	var in {{.Request}}
 {{if .HasPathParams }}
     // bind uri param, etc: /api/:name bind :name
