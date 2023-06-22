@@ -54,9 +54,11 @@ func genService(gen *protogen.Plugin, file *protogen.File, g *protogen.Generated
 	}
 	// HTTP Server.
 	sd := &service{
-		Name:     s.GoName,
-		FullName: string(s.Desc.FullName()),
-		FilePath: file.Desc.Path(),
+		Name:            s.GoName,
+		ImplHandlerName: s.GoName + "Handler",
+		Comment:         strings.TrimSpace(s.Comments.Leading.String()),
+		FullName:        string(s.Desc.FullName()),
+		FilePath:        file.Desc.Path(),
 	}
 
 	for _, method := range s.Methods {
@@ -154,11 +156,13 @@ func buildHTTPRule(m *protogen.Method, rule *annotations.HttpRule) *method {
 
 func buildMethodDesc(m *protogen.Method, httpMethod, path string) *method {
 	defer func() { methodSets[m.GoName]++ }()
+
 	md := &method{
 		Name:    m.GoName,
 		Num:     methodSets[m.GoName],
 		Request: m.Input.GoIdent.GoName,
 		Reply:   m.Output.GoIdent.GoName,
+		Comment: strings.TrimSpace(m.Comments.Leading.String()),
 		Path:    path,
 		Method:  httpMethod,
 	}
